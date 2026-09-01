@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import cast
 import streamlit as st
 from psycopg.types.json import Jsonb
 from psycopg.rows import DictRow, dict_row
@@ -320,24 +321,32 @@ tool_node = ToolNode(tools)
 #                        check_same_thread=False)
 # checkpointer = SqliteSaver(conn=conn)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+
+DATABASE_URL = cast(str, os.getenv("DATABASE_URL"))
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
 
-pool: ConnectionPool[Connection[DictRow]] = ConnectionPool(
-    conninfo=DATABASE_URL,
-    kwargs={
-        "autocommit": True,
-        "prepare_threshold": 0,
-        "row_factory": dict_row,
-    },
-    min_size=1,
-    max_size=3,
-    timeout=30,
-)
-checkpointer = PostgresSaver(pool)
 
+@st.cache_resource
+def get_pool():
+    return ConnectionPool(
+        conninfo=DATABASE_URL,
+        kwargs={
+            "autocommit": True,
+            "prepare_threshold": 0,
+            "row_factory": dict_row,
+        },
+        min_size=1,
+        max_size=3,
+        timeout=60,
+        open=True,
+    )
+
+
+pool = get_pool()
+
+checkpointer = PostgresSaver(pool)  # pyright: ignore[reportArgumentType]
 checkpointer.setup()
 
 # -------------------
