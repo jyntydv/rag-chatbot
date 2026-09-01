@@ -13,4 +13,4 @@ psycopg[binary]
 psycopg-pool
 python-dotenv
 requests
-duckduckgo-search
+ddgs
