@@ -333,13 +333,11 @@ pool: ConnectionPool[Connection[DictRow]] = ConnectionPool(
         "row_factory": dict_row,
     },
     min_size=1,
-    max_size=5,
+    max_size=3,
+    timeout=30,
 )
 checkpointer = PostgresSaver(pool)
 
-checkpointer.setup()
-
-# Create LangGraph checkpoint tables if they don't exist
 checkpointer.setup()
 
 # -------------------
